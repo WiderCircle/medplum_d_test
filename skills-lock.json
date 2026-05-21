@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "flightcontrol-config": {
+      "source": "flightcontrolhq/skills",
+      "sourceType": "github",
+      "skillPath": "skills/config/SKILL.md",
+      "computedHash": "98a03589fc82dd954c517a9b8a40f62b2ab63295e37b366c2fdd0619cecfb2d6"
+    }
+  }
+}

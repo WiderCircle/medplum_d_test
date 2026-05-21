@@ -1,0 +1,88 @@
+{
+  "$schema": "https://app.flightcontrol.dev/schema.json",
+  "environments": [
+    {
+      "id": "production",
+      "name": "Production",
+      "region": "us-east-1",
+      "source": {
+        "branch": "main"
+      },
+      "services": [
+        {
+          "id": "db",
+          "type": "rds",
+          "name": "Medplum Postgres",
+          "engine": "postgres",
+          "engineVersion": "16",
+          "instanceSize": "db.t4g.medium",
+          "storage": 20,
+          "multiAz": false,
+          "dbName": "medplum"
+        },
+        {
+          "id": "redis",
+          "type": "elasticache",
+          "name": "Medplum Redis",
+          "engine": "redis",
+          "engineVersion": "7.0",
+          "instanceSize": "cache.t4g.micro"
+        },
+        {
+          "id": "server",
+          "type": "fargate",
+          "name": "Medplum Server",
+          "dockerImage": "medplum/medplum-server:latest",
+          "cpu": 1024,
+          "memory": 2048,
+          "port": 8103,
+          "healthCheckPath": "/healthcheck",
+          "minInstances": 1,
+          "maxInstances": 3,
+          "env": [
+            { "name": "MEDPLUM_PORT", "value": "8103" },
+            { "name": "MEDPLUM_BASE_URL", "value": "https://api.YOURDOMAIN.com/" },
+            { "name": "MEDPLUM_APP_BASE_URL", "value": "https://app.YOURDOMAIN.com/" },
+            { "name": "MEDPLUM_STORAGE_BASE_URL", "value": "https://api.YOURDOMAIN.com/storage/" },
+
+            { "name": "MEDPLUM_DATABASE_HOST", "value": "${{ services.db.dbHost }}" },
+            { "name": "MEDPLUM_DATABASE_PORT", "value": "${{ services.db.dbPort }}" },
+            { "name": "MEDPLUM_DATABASE_DBNAME", "value": "${{ services.db.dbName }}" },
+            { "name": "MEDPLUM_DATABASE_USERNAME", "value": "${{ services.db.dbUsername }}" },
+            { "name": "MEDPLUM_DATABASE_PASSWORD", "value": "${{ services.db.dbPassword }}" },
+
+            { "name": "MEDPLUM_REDIS_HOST", "value": "${{ services.redis.host }}" },
+            { "name": "MEDPLUM_REDIS_PORT", "value": "${{ services.redis.port }}" },
+            { "name": "MEDPLUM_REDIS_PASSWORD", "value": "${{ secrets.REDIS_AUTH_TOKEN }}" },
+
+            { "name": "MEDPLUM_BINARY_STORAGE", "value": "s3://YOUR-MEDPLUM-BUCKET/binary/" },
+            { "name": "MEDPLUM_SUPPORT_EMAIL", "value": "\"Medplum\" <support@YOURDOMAIN.com>" },
+            { "name": "MEDPLUM_MAX_JSON_SIZE", "value": "1mb" },
+            { "name": "MEDPLUM_MAX_BATCH_SIZE", "value": "50mb" },
+            { "name": "MEDPLUM_VM_CONTEXT_BOTS_ENABLED", "value": "true" },
+            { "name": "MEDPLUM_DEFAULT_BOT_RUNTIME_VERSION", "value": "vmcontext" },
+            { "name": "MEDPLUM_ALLOWED_ORIGINS", "value": "*" },
+            { "name": "MEDPLUM_INTROSPECTION_ENABLED", "value": "true" },
+            { "name": "MEDPLUM_SHUTDOWN_TIMEOUT_MILLISECONDS", "value": "30000" },
+            { "name": "MEDPLUM_GOOGLE_CLIENT_ID", "value": "${{ secrets.GOOGLE_CLIENT_ID }}" },
+            { "name": "MEDPLUM_GOOGLE_CLIENT_SECRET", "value": "${{ secrets.GOOGLE_CLIENT_SECRET }}" },
+            { "name": "MEDPLUM_RECAPTCHA_SITE_KEY", "value": "${{ secrets.RECAPTCHA_SITE_KEY }}" },
+            { "name": "MEDPLUM_RECAPTCHA_SECRET_KEY", "value": "${{ secrets.RECAPTCHA_SECRET_KEY }}" }
+          ]
+        },
+        {
+          "id": "app",
+          "type": "fargate",
+          "name": "Medplum App",
+          "dockerImage": "medplum/medplum-app:latest",
+          "cpu": 512,
+          "memory": 1024,
+          "port": 3000,
+          "healthCheckPath": "/",
+          "minInstances": 1,
+          "maxInstances": 2
+        }
+      ]
+    }
+  ]
+}
