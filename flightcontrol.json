@@ -29,6 +29,14 @@
           "instanceSize": "cache.t4g.micro"
         },
         {
+          "id": "storage",
+          "type": "s3",
+          "name": "Medplum Binary Storage",
+          "bucketNameBase": "medplum-binary-prod",
+          "bucketVersioning": true,
+          "blockAllPublicAccess": true
+        },
+        {
           "id": "server",
           "type": "fargate",
           "name": "Medplum Server",
@@ -55,7 +63,7 @@
             { "name": "MEDPLUM_REDIS_PORT", "value": "${{ services.redis.port }}" },
             { "name": "MEDPLUM_REDIS_PASSWORD", "value": "${{ secrets.REDIS_AUTH_TOKEN }}" },
 
-            { "name": "MEDPLUM_BINARY_STORAGE", "value": "s3://YOUR-MEDPLUM-BUCKET/binary/" },
+            { "name": "MEDPLUM_BINARY_STORAGE", "value": "s3://${{ services.storage.bucketName }}/binary/" },
             { "name": "MEDPLUM_SUPPORT_EMAIL", "value": "\"Medplum\" <support@YOURDOMAIN.com>" },
             { "name": "MEDPLUM_MAX_JSON_SIZE", "value": "1mb" },
             { "name": "MEDPLUM_MAX_BATCH_SIZE", "value": "50mb" },
