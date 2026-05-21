@@ -41,7 +41,7 @@
           "type": "fargate",
           "name": "Medplum Server",
           "buildType": "docker",
-          "dockerImage": "medplum/medplum-server:latest",
+          "dockerfilePath": "Dockerfile.server",
           "cpu": 1,
           "memory": 2,
           "port": 8103,
@@ -84,13 +84,21 @@
           "type": "fargate",
           "name": "Medplum App",
           "buildType": "docker",
-          "dockerImage": "medplum/medplum-app:latest",
+          "dockerfilePath": "Dockerfile.app",
           "cpu": 0.5,
           "memory": 1,
           "port": 3000,
           "healthCheckPath": "/",
           "minInstances": 1,
-          "maxInstances": 2
+          "maxInstances": 2,
+          "envVariables": {
+            "MEDPLUM_BASE_URL": "https://api.YOURDOMAIN.com/",
+            "MEDPLUM_REGISTER_ENABLED": "true",
+            "MEDPLUM_AWS_TEXTRACT_ENABLED": "true",
+            "MEDPLUM_CLIENT_ID": "",
+            "GOOGLE_CLIENT_ID": "${{ secrets.GOOGLE_CLIENT_ID }}",
+            "RECAPTCHA_SITE_KEY": "${{ secrets.RECAPTCHA_SITE_KEY }}"
+          }
         }
       ]
     }
