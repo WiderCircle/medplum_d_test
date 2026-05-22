@@ -1,37 +1,8 @@
-# Stage 0: prune monorepo to server + its workspace deps only
-FROM node:24-slim AS pruner
-WORKDIR /usr/src/medplum
-COPY . .
-RUN npx turbo prune @medplum/server --docker
-
 # Stage 1: install deps and compile TypeScript
 FROM node:24-slim AS builder
 WORKDIR /usr/src/medplum
-COPY --from=pruner /usr/src/medplum/out/json/ .
-COPY --from=pruner /usr/src/medplum/out/package-lock.json ./package-lock.json
+COPY . .
 RUN npm ci
-# @types/semver is in packages/cli devDeps (not server), stripped by turbo prune
-# pdfmake 0.2.21 ships no types/exports fields; add types pointer + interfaces shim
-RUN npm install --no-save @types/semver@7.7.1 && \
-    node -e "const fs=require('fs'),p='node_modules/pdfmake/package.json',pkg=JSON.parse(fs.readFileSync(p,'utf8'));if(!pkg.types&&!pkg.typings){pkg.types='src/printer.d.ts';fs.writeFileSync(p,JSON.stringify(pkg,null,2));}" && \
-    echo 'export * from "./src/interfaces";' > node_modules/pdfmake/interfaces.d.ts
-COPY --from=pruner /usr/src/medplum/out/full/ .
-COPY --from=pruner /usr/src/medplum/tsconfig.json ./tsconfig.json
-COPY --from=pruner /usr/src/medplum/api-extractor.json ./api-extractor.json
-COPY --from=pruner /usr/src/medplum/tsdoc.json ./tsdoc.json
-RUN node -e "\
-  const fs=require('fs'),{execSync}=require('child_process');\
-  const skip=['**/*.test.ts','**/*.test.tsx','**/*.stories.ts','**/*.stories.tsx','src/stories'];\
-  execSync('find . -name tsconfig.json -not -path */node_modules/*').toString().trim().split('\n').forEach(p=>{\
-    try{\
-      const c=JSON.parse(fs.readFileSync(p,'utf8'));\
-      if(!c.exclude)c.exclude=[];\
-      skip.forEach(x=>{if(!c.exclude.includes(x))c.exclude.push(x);});\
-      if(c.compilerOptions&&Array.isArray(c.compilerOptions.types)&&!c.compilerOptions.types.includes('node'))c.compilerOptions.types.push('node');\
-      if(p.includes('packages/server/tsconfig.json')&&c.compilerOptions)c.compilerOptions.moduleResolution='node';\
-      fs.writeFileSync(p,JSON.stringify(c,null,2));\
-    }catch(e){}\
-  });"
 RUN npx turbo run build --filter=@medplum/server...
 
 # Stage 2: production runtime

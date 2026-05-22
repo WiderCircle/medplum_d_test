@@ -1,31 +1,8 @@
-# Stage 0: prune monorepo to app + its workspace deps only
-FROM node:24-slim AS pruner
-WORKDIR /usr/src/medplum
-COPY . .
-RUN npx turbo prune @medplum/app --docker
-
 # Stage 1: install deps and build the React SPA
 FROM node:24-slim AS builder
 WORKDIR /usr/src/medplum
-COPY --from=pruner /usr/src/medplum/out/json/ .
-COPY --from=pruner /usr/src/medplum/out/package-lock.json ./package-lock.json
+COPY . .
 RUN npm ci
-COPY --from=pruner /usr/src/medplum/out/full/ .
-COPY --from=pruner /usr/src/medplum/tsconfig.json ./tsconfig.json
-COPY --from=pruner /usr/src/medplum/api-extractor.json ./api-extractor.json
-COPY --from=pruner /usr/src/medplum/tsdoc.json ./tsdoc.json
-RUN node -e "\
-  const fs=require('fs'),{execSync}=require('child_process');\
-  const skip=['**/*.test.ts','**/*.test.tsx','**/*.stories.ts','**/*.stories.tsx','src/stories'];\
-  execSync('find . -name tsconfig.json -not -path */node_modules/*').toString().trim().split('\n').forEach(p=>{\
-    try{\
-      const c=JSON.parse(fs.readFileSync(p,'utf8'));\
-      if(!c.exclude)c.exclude=[];\
-      skip.forEach(x=>{if(!c.exclude.includes(x))c.exclude.push(x);});\
-      if(c.compilerOptions&&Array.isArray(c.compilerOptions.types)&&!c.compilerOptions.types.includes('node'))c.compilerOptions.types.push('node');\
-      fs.writeFileSync(p,JSON.stringify(c,null,2));\
-    }catch(e){}\
-  });"
 RUN npx turbo run build --filter=@medplum/app...
 
 # Stage 2: nginx serving static files
