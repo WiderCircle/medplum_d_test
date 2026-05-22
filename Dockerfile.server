@@ -12,6 +12,8 @@ COPY --from=pruner /usr/src/medplum/out/package-lock.json ./package-lock.json
 RUN npm ci
 COPY --from=pruner /usr/src/medplum/out/full/ .
 COPY --from=pruner /usr/src/medplum/tsconfig.json ./tsconfig.json
+COPY --from=pruner /usr/src/medplum/api-extractor.json ./api-extractor.json
+COPY --from=pruner /usr/src/medplum/tsdoc.json ./tsdoc.json
 RUN npx turbo run build --filter=@medplum/server...
 
 # Stage 2: production runtime
