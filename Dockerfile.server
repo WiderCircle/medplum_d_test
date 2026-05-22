@@ -25,4 +25,4 @@ COPY --from=builder /usr/src/medplum/packages/fhir-router/dist ./packages/fhir-r
 COPY --from=builder /usr/src/medplum/packages/server/dist      ./packages/server/dist
 EXPOSE 8103
 WORKDIR /usr/src/medplum/packages/server
-CMD ["node", "--import", "./dist/otel/instrumentation.js", "dist/index.js"]
+CMD ["node", "--import", "./dist/otel/instrumentation.js", "dist/index.js", "env"]
