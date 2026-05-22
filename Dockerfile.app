@@ -14,6 +14,12 @@ COPY --from=pruner /usr/src/medplum/out/full/ .
 COPY --from=pruner /usr/src/medplum/tsconfig.json ./tsconfig.json
 COPY --from=pruner /usr/src/medplum/api-extractor.json ./api-extractor.json
 COPY --from=pruner /usr/src/medplum/tsdoc.json ./tsdoc.json
+RUN node -e "\
+  const fs=require('fs'),{execSync}=require('child_process');\
+  const skip=['**/*.test.ts','**/*.test.tsx','**/*.stories.ts','**/*.stories.tsx','src/stories'];\
+  execSync('find . -name tsconfig.json -not -path */node_modules/*').toString().trim().split('\n').forEach(p=>{\
+    try{const c=JSON.parse(fs.readFileSync(p,'utf8'));if(!c.exclude)c.exclude=[];skip.forEach(x=>{if(!c.exclude.includes(x))c.exclude.push(x);});fs.writeFileSync(p,JSON.stringify(c,null,2));}catch(e){}\
+  });"
 RUN npx turbo run build --filter=@medplum/app...
 
 # Stage 2: nginx serving static files
