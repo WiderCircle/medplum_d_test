@@ -60,6 +60,7 @@
             "MEDPLUM_DATABASE_USERNAME": { "fromService": { "id": "db", "value": "username" } },
             "MEDPLUM_DATABASE_PASSWORD": { "fromService": { "id": "db", "value": "password" } },
             "MEDPLUM_DATABASE_SSL": "{\"require\":true,\"rejectUnauthorized\":false}",
+            "MEDPLUM_DATABASE_DISABLE_CONNECTION_CONFIGURATION": "true",
 
             "MEDPLUM_REDIS_HOST": { "fromService": { "id": "redis", "value": "host" } },
             "MEDPLUM_REDIS_PORT": { "fromService": { "id": "redis", "value": "port" } },
