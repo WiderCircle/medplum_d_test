@@ -39,6 +39,7 @@
         {
           "id": "server",
           "type": "fargate",
+          "ci": { "type": "ec2", "instanceStorage": 80 },
           "name": "Medplum Server",
           "buildType": "docker",
           "dockerfilePath": "Dockerfile.server",
