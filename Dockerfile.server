@@ -23,6 +23,8 @@ COPY --from=builder /usr/src/medplum/packages/core/dist        ./packages/core/d
 COPY --from=builder /usr/src/medplum/packages/definitions/dist ./packages/definitions/dist
 COPY --from=builder /usr/src/medplum/packages/fhir-router/dist ./packages/fhir-router/dist
 COPY --from=builder /usr/src/medplum/packages/server/dist      ./packages/server/dist
+COPY --from=builder /usr/src/medplum/packages/server/medplum.config.json ./packages/server/
 EXPOSE 8103
 WORKDIR /usr/src/medplum/packages/server
-CMD ["node", "--import", "./dist/otel/instrumentation.js", "dist/index.js", "env"]
+# Config: Load base config from file, then override with MEDPLUM_* environment variables
+CMD ["node", "--import", "./dist/otel/instrumentation.js", "dist/index.js", "file:medplum.config.json,env"]

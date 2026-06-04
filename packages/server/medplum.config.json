@@ -1,38 +1,31 @@
 {
   "port": 8103,
-  "baseUrl": "http://localhost:8103/",
-  "appBaseUrl": "http://localhost:3000/",
-  "binaryStorage": "file:./binary/",
-  "storageBaseUrl": "http://localhost:8103/storage/",
-  "supportEmail": "\"Medplum\" <support@medplum.com>",
-  "googleClientId": "397236612778-c0b5tnjv98frbo1tfuuha5vkme3cmq4s.apps.googleusercontent.com",
-  "googleClientSecret": "",
-  "recaptchaSiteKey": "6LfHdsYdAAAAAC0uLnnRrDrhcXnziiUwKd8VtLNq",
-  "recaptchaSecretKey": "6LfHdsYdAAAAAH9dN154jbJ3zpQife3xaiTvPChL",
-  "adminClientId": "2a4b77f2-4d4e-43c6-9b01-330eb5ca772f",
   "maxJsonSize": "1mb",
   "maxBatchSize": "50mb",
-  "botLambdaRoleArn": "",
-  "botLambdaLayerName": "medplum-bot-layer",
   "vmContextBotsEnabled": true,
   "defaultBotRuntimeVersion": "vmcontext",
-  "allowedOrigins": "*",
+  "botLambdaRoleArn": "",
+  "botLambdaLayerName": "medplum-bot-layer",
+  "emailProvider": "awsses",
+  "awsRegion": "us-east-1",
   "introspectionEnabled": true,
-  "database": {
-    "host": "localhost",
-    "port": 5432,
-    "dbname": "medplum",
-    "username": "medplum",
-    "password": "medplum"
-  },
-  "redis": {
-    "host": "localhost",
-    "port": 6379,
-    "password": "medplum"
-  },
+  "registerEnabled": true,
+  "allowedOrigins": "*",
+  "logLevel": "info",
+  "logAuditEvents": true,
+  "saveAuditEvents": true,
+  "shutdownTimeoutMilliseconds": 30000,
   "bullmq": {
-    "removeOnFail": { "count": 1 },
-    "removeOnComplete": { "count": 1 }
+    "concurrency": 20,
+    "removeOnFail": { "count": 100 },
+    "removeOnComplete": { "count": 100 }
   },
-  "shutdownTimeoutMilliseconds": 30000
+  "database": {
+    "ssl": {
+      "require": true,
+      "rejectUnauthorized": false
+    },
+    "disableConnectionConfiguration": true,
+    "runMigrations": true
+  }
 }
