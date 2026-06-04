@@ -68,6 +68,8 @@
 
             "MEDPLUM_BINARY_STORAGE": "s3://${{ services.storage.bucketName }}/binary/",
             
+            "LOGTAIL_SOURCE_TOKEN": "${{ secrets.LOGTAIL_SOURCE_TOKEN }}",
+            
             "MEDPLUM_GOOGLE_CLIENT_ID": "${{ secrets.GOOGLE_CLIENT_ID }}",
             "MEDPLUM_GOOGLE_CLIENT_SECRET": "${{ secrets.GOOGLE_CLIENT_SECRET }}",
             "MEDPLUM_RECAPTCHA_SITE_KEY": "${{ secrets.RECAPTCHA_SITE_KEY }}",

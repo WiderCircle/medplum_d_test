@@ -42,6 +42,8 @@ export async function main(configName: string): Promise<void> {
   const config = await loadConfig(configName);
 
   const app = await initApp(express(), config);
+  console.log('config', config);
+  globalLogger.info('config', config);
   const server = app.listen(config.port);
   server.keepAliveTimeout = config.keepAliveTimeout ?? 90000;
   globalLogger.info('Server started', { port: config.port });
