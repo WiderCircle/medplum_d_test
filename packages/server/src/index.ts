@@ -34,6 +34,11 @@ export async function main(configName: string): Promise<void> {
 
   globalLogger.info('Starting Medplum Server...', { configName, version: getServerVersion() });
 
+  // Load configuration based on configName parameter:
+  //   "env" = read from MEDPLUM_* environment variables only
+  //   "file:path.json" = read from JSON file
+  //   "aws:path" = read from AWS SSM Parameter Store
+  //   "file:base.json,env" = read file first, then override with env vars
   const config = await loadConfig(configName);
 
   const app = await initApp(express(), config);
@@ -58,6 +63,8 @@ export async function main(configName: string): Promise<void> {
 
 export async function runFromCli(argv: string[]): Promise<void> {
   try {
+    // Default to file:medplum.config.json if no config arg provided
+    // In production (e.g. Docker), you might pass "env" to read environment variables
     await main(argv.length === 3 ? argv[2] : 'file:medplum.config.json');
   } catch (err) {
     globalLogger.error('Fatal error during startup', err as Error);

@@ -35,10 +35,12 @@ export function getConfig(): ServerConfig {
  *   2) "aws:" followed by AWS SSM path prefix.
  *   3) "gcp:" followed by GCP project.
  *   4) "azure:" followed by Azure vault.
- *   5) "env" to load from environment variables.
+ *   5) "env" to load from environment variables (reads all MEDPLUM_* env vars).
  *
  * Examples:
  *   - "file:medplum.config.json" — single file source
+ *   - "env" — read all MEDPLUM_* environment variables only
+ *   - "file:base.json,env" — file config with env var overrides
  *   - "aws:/medplum/prod/,env" — AWS SSM config with env var overrides
  *
  * @param configName - The medplum config identifier (comma-separated for multiple sources).
@@ -76,6 +78,7 @@ async function loadSingleConfig(configName: string): Promise<MedplumServerConfig
   const [configType, configPath] = splitN(configName, ':', 2);
   switch (configType) {
     case 'env':
+      // Load config from MEDPLUM_* environment variables only
       return loadEnvConfig();
     case 'file':
       return loadFileConfig(configPath);
@@ -162,13 +165,34 @@ export async function loadTestConfig(): Promise<MedplumServerConfig> {
 
 /**
  * Loads configuration settings from environment variables.
- * Environment variables names are prefixed with "MEDPLUM_".
- * For example, "MEDPLUM_PORT" will set the "port" config setting.
- * @returns The configuration.
+ * 
+ * This function reads ALL environment variables that start with "MEDPLUM_" and converts them
+ * to configuration settings. The MEDPLUM_ prefix is stripped and the remaining key is converted
+ * from CAPITAL_CASE to camelCase.
+ * 
+ * Special prefixes are handled for nested config objects:
+ *   - MEDPLUM_DATABASE_* → database.*
+ *   - MEDPLUM_REDIS_* → redis.*
+ *   - MEDPLUM_CACHE_REDIS_* → cacheRedis.*
+ *   - MEDPLUM_RATE_LIMIT_REDIS_* → rateLimitRedis.*
+ *   - MEDPLUM_PUBSUB_REDIS_* → pubSubRedis.*
+ *   - MEDPLUM_BACKGROUND_JOBS_REDIS_* → backgroundJobsRedis.*
+ *   - MEDPLUM_SMTP_* → smtp.*
+ *   - MEDPLUM_BULLMQ_* → bullmq.*
+ *   - MEDPLUM_FISSION_* → fission.*
+ *   - MEDPLUM_WORKERS_* → workers.*
+ * 
+ * Examples:
+ *   - MEDPLUM_PORT=8103 → { port: 8103 }
+ *   - MEDPLUM_BASE_URL=http://... → { baseUrl: "http://..." }
+ *   - MEDPLUM_DATABASE_HOST=localhost → { database: { host: "localhost" } }
+ *   - MEDPLUM_REGISTER_ENABLED=true → { registerEnabled: true }
+ * 
+ * @returns The configuration built from environment variables.
  */
 function loadEnvConfig(): MedplumServerConfig {
   const config: Record<string, any> = {};
-  // Iterate over all environment variables
+  // Iterate over all environment variables and pick out MEDPLUM_* vars
   for (const [name, value] of Object.entries(process.env)) {
     if (!name.startsWith('MEDPLUM_')) {
       continue;
