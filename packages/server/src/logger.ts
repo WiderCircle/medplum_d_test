@@ -4,19 +4,31 @@ import { LogLevel, Logger } from '@medplum/core';
 import { once } from 'node:events';
 import { requestContextStore } from './request-context-store';
 
-// Initialize BetterStack (Logtail) if token is provided
+// BetterStack (Logtail) integration - initialized at runtime if available
 let logtail: any = null;
-if (process.env.LOGTAIL_SOURCE_TOKEN) {
-  try {
-    // Dynamic import to avoid breaking if package not installed
-    import('@logtail/node').then((module) => {
-      logtail = new module.Logtail(process.env.LOGTAIL_SOURCE_TOKEN as string);
-    }).catch(() => {
-      console.warn('BetterStack (@logtail/node) not installed, logs will only go to stdout');
-    });
-  } catch (err) {
-    console.warn('Failed to initialize BetterStack:', err);
+
+// Initialize BetterStack asynchronously at runtime (not at module load time)
+async function initBetterStack(): Promise<void> {
+  if (!process.env.LOGTAIL_SOURCE_TOKEN || logtail) {
+    return;
   }
+  
+  try {
+    // Dynamic import with proper type handling
+    const logtailModule = await import('@logtail/node').catch(() => null);
+    if (logtailModule) {
+      logtail = new logtailModule.Logtail(process.env.LOGTAIL_SOURCE_TOKEN as string);
+    }
+  } catch (err) {
+    // Silently fail - logs will still go to stdout
+  }
+}
+
+// Try to initialize BetterStack, but don't block on it
+if (process.env.LOGTAIL_SOURCE_TOKEN) {
+  initBetterStack().catch(() => {
+    // Ignore initialization errors
+  });
 }
 
 export function writeLineToStdout(msg: string): void {

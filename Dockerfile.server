@@ -27,7 +27,5 @@ COPY --from=builder /usr/src/medplum/packages/server/dist      ./packages/server
 COPY --from=builder /usr/src/medplum/packages/server/medplum.config.json ./packages/server/
 EXPOSE 8103
 WORKDIR /usr/src/medplum/packages/server
-# Install BetterStack/Logtail for enhanced logging (optional, won't break if missing)
-RUN npm install --omit=dev @logtail/node || true
 # Config: Load base config from file, then override with MEDPLUM_* environment variables
 CMD ["node", "--import", "./dist/otel/instrumentation.js", "dist/index.js", "file:medplum.config.json,env"]

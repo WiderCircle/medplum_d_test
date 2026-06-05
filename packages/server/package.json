@@ -45,6 +45,7 @@
     "@google-cloud/secret-manager": "6.1.2",
     "@google-cloud/storage": "7.19.0",
     "@kubernetes/client-node": "1.4.0",
+    "@logtail/node": "0.5.2",
     "@medplum/bot-layer": "5.1.13",
     "@medplum/ccda": "5.1.13",
     "@medplum/core": "5.1.13",
